@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  php:
+    image: php:7-fpm
+    container_name: web_php
+    restart: unless-stopped
+    tty: true
+    volumes:
+      - ~/Work:/websites
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:latest
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: web_nginx
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "80:80"
+    volumes:
+      - ~/Work:/websites
+      - ./nginx/sites-available:/etc/nginx/sites-available
+      - ./nginx/sites-available:/etc/nginx/sites-enabled
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:latest
+    container_name: web_mysql
+    command: mysqld --default-authentication-plugin=mysql_native_password
+    restart: unless-stopped
+    tty: true
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - ~/Docker/nginx-php-mysql/mysql:/var/lib/mysql
+    networks:
+      - app-network
+
+
+networks:
+  app-network:
+    driver: bridge
